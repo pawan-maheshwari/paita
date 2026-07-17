@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAITA — Agentic AI for ITSM · Interactive Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700;800&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#171410; --navy-2:#7E6534; --paper:#f7f5f0; --card:#ffffff;
+  --ink:#24201a; --muted:#6e6559; --line:#e3ddd0;
+  --user:#4a708f; --orch:#4f7d57; --integ:#B08D4F; --core:#7b6285; --gov:#a34a3f;
+  --mono:'IBM Plex Mono',monospace; --sans:'Manrope',sans-serif; --disp:'Jost',sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);line-height:1.55}
+h1,h2,h3,h4{font-family:var(--disp)}
+section{max-width:1080px;margin:0 auto;padding:56px 24px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lede{color:var(--muted);font-size:15px;max-width:640px;margin-top:8px}
+
+/* ── top nav ── */
+nav{position:sticky;top:0;z-index:50;background:var(--navy);color:#f1ede2;
+    display:flex;align-items:center;gap:6px;padding:0 20px;flex-wrap:wrap}
+nav .brand{font-family:var(--disp);font-weight:800;font-size:16px;padding:14px 10px 14px 0;letter-spacing:.02em}
+nav .brand span{color:#C9A96A}
+nav a{color:#b3a892;text-decoration:none;font-size:13px;font-weight:500;padding:14px 12px;border-bottom:2px solid transparent}
+nav a:hover,nav a:focus{color:#fff;border-color:#C9A96A;outline:none}
+
+/* ── hero ── */
+.hero{background:linear-gradient(160deg,#171410 0%,#221c13 100%);color:#f1ede2;border-bottom:3px solid #C9A96A;padding:64px 24px 72px}
+.hero-inner{max-width:1080px;margin:0 auto}
+.hero h1{font-size:clamp(28px,4.5vw,44px);font-weight:800;line-height:1.12;max-width:760px}
+.hero h1 em{font-style:normal;color:#C9A96A}
+.hero p{color:#a89d88;max-width:620px;margin-top:14px;font-size:15px}
+.hero .kpis{display:flex;gap:28px;margin-top:30px;flex-wrap:wrap}
+.hero .kpi b{font-family:var(--disp);font-size:26px;font-weight:800;display:block}
+.hero .kpi span{font-family:var(--mono);font-size:11px;color:#8d8371}
+.k-orch b{color:#9dc4a4}.k-integ b{color:#C9A96A}.k-gov b{color:#d99a90}
+
+.btn{font-family:var(--sans);font-weight:600;font-size:13px;border-radius:6px;cursor:pointer;
+     border:1px solid var(--navy-2);padding:9px 16px;background:var(--navy-2);color:#fff}
+.btn:hover{background:var(--navy)}
+.btn-ghost{background:transparent;color:var(--navy-2)}
+.btn-sm{padding:6px 11px;font-size:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px}
+
+/* ── demo section ── */
+.demo-grid{display:grid;grid-template-columns:290px 1fr;gap:18px;margin-top:26px}
+@media(max-width:860px){.demo-grid{grid-template-columns:1fr}}
+.scenarios .sc{width:100%;text-align:left;background:var(--card);border:1px solid var(--line);
+  border-radius:8px;padding:13px 15px;margin-bottom:10px;cursor:pointer;font-family:var(--sans)}
+.scenarios .sc:hover{border-color:var(--user)}
+.scenarios .sc.active{border-color:var(--navy-2);box-shadow:0 0 0 1.5px var(--navy-2)}
+.scenarios .sc .t{font-weight:600;font-size:13.5px}
+.scenarios .sc .d{font-size:12px;color:var(--muted);margin-top:2px}
+.scenarios .sc .tag{font-family:var(--mono);font-size:10px;color:#fff;border-radius:3px;padding:1.5px 6px;float:right}
+.tg-orch{background:var(--orch)}.tg-integ{background:var(--integ)}.tg-gov{background:var(--gov)}.tg-user{background:var(--user)}
+
+/* pipeline rail (signature element, reused across sections) */
+.rail{display:flex;align-items:center;flex-wrap:wrap;gap:0;padding:14px 16px;border-bottom:1px solid var(--line)}
+.stage{font-family:var(--mono);font-size:10.5px;padding:6px 10px;border-radius:4px;
+  border:1.5px solid var(--line);color:var(--muted);background:#fff;transition:all .25s}
+.stage.lit{color:#fff;border-color:transparent}
+.st-intake.lit{background:var(--user)}.st-rag.lit{background:var(--orch)}.st-plan.lit{background:var(--core)}
+.st-hitl.lit{background:var(--gov)}.st-exec.lit{background:var(--integ)}.st-reply.lit{background:var(--navy-2)}
+.stage.skip{opacity:.35;text-decoration:line-through}
+.pipe{width:18px;height:1.5px;background:var(--line);transition:background .25s}
+.pipe.lit{background:var(--ink)}
+
+.chat{min-height:340px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:82%;padding:11px 14px;border-radius:10px;font-size:13.5px;opacity:0;transform:translateY(6px);
+     animation:pop .3s forwards}
+@keyframes pop{to{opacity:1;transform:none}}
+.msg.user{align-self:flex-end;background:var(--navy-2);color:#fff;border-bottom-right-radius:3px}
+.msg.bot{align-self:flex-start;background:#f1ede3;border:1px solid var(--line);border-bottom-left-radius:3px;white-space:pre-line}
+.msg.sys{align-self:center;max-width:100%;width:100%;background:#f7f1e2;border:1px dashed var(--integ);
+  font-family:var(--mono);font-size:11px;color:#6e5a26;border-radius:6px}
+.msg.hitl{align-self:center;width:100%;max-width:100%;background:#f8efec;border:1px solid var(--gov);border-radius:8px}
+.msg.hitl .hd{font-family:var(--disp);font-weight:600;font-size:12.5px;color:var(--gov)}
+.cite{display:inline-block;font-family:var(--mono);font-size:10px;background:#e7ede2;color:#3c5f42;
+  border-radius:3px;padding:1px 6px;margin:6px 6px 0 0}
+.tick{font-family:var(--mono);font-size:11px;background:#efe7d3;color:#6e5a26;border-radius:3px;padding:1px 6px}
+
+/* ── architecture ── */
+.arch{margin-top:26px}
+.layer{border-radius:9px;border:1.6px solid;padding:13px 16px;margin-bottom:10px;cursor:pointer;background:#fff;transition:box-shadow .15s}
+.layer:hover{box-shadow:0 3px 14px rgba(20,38,60,.10)}
+.layer .lt{display:flex;align-items:center;gap:10px}
+.layer h3{font-size:13px;font-weight:700;letter-spacing:.03em}
+.layer .items{font-size:12px;color:var(--muted);margin-top:3px}
+.layer .chev{margin-left:auto;font-family:var(--mono);color:var(--muted);transition:transform .2s}
+.layer.open .chev{transform:rotate(90deg)}
+.layer .detail{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);
+  font-size:13px;color:var(--ink)}
+.layer.open .detail{display:block}
+.layer .detail b{font-family:var(--mono);font-size:11.5px}
+.L-user{border-color:var(--user)} .L-user h3{color:var(--user)}
+.L-orch{border-color:var(--orch)} .L-orch h3{color:var(--orch)}
+.L-integ{border-color:var(--integ)} .L-integ h3{color:var(--integ)}
+.L-core{border-color:var(--core)} .L-core h3{color:var(--core)}
+.L-gov{border-color:var(--gov)} .L-gov h3{color:var(--gov)}
+.agents{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:10px}
+.agent{border:1px solid var(--line);border-radius:6px;padding:9px 10px;font-size:11.5px;background:#fcfbf7}
+.agent b{display:block;font-family:var(--mono);font-size:11px;color:var(--orch)}
+.down{ text-align:center;color:var(--muted);font-size:15px;margin:-4px 0 6px}
+
+/* ── implementation (hidden guides) ── */
+.acc{margin-top:22px}
+details.guide{background:var(--card);border:1px solid var(--line);border-radius:9px;margin-bottom:10px;overflow:hidden}
+details.guide summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;padding:15px 18px}
+details.guide summary::-webkit-details-marker{display:none}
+.ph{font-family:var(--mono);font-size:11px;color:#fff;background:var(--navy-2);border-radius:4px;
+    padding:4px 8px;min-width:70px;text-align:center}
+details.guide summary h3{font-size:14px;font-weight:600}
+details.guide summary .dur{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--muted)}
+details.guide[open] summary{border-bottom:1px solid var(--line)}
+.guide .body{padding:16px 20px 20px;font-size:13.5px}
+.guide ul{margin:8px 0 8px 18px}
+.guide li{margin:5px 0}
+.guide code,.guide pre{font-family:var(--mono);font-size:12px;background:#1c1813;color:#e5dcc8;border-radius:6px}
+.guide code{padding:1px 6px;background:#efe7d3;color:#6e5a26}
+.guide pre{padding:12px 14px;overflow-x:auto;margin:10px 0}
+.gate{border-left:3px solid var(--gov);background:#f8efec;padding:8px 12px;border-radius:0 6px 6px 0;
+  font-size:12.5px;margin-top:10px}
+.gate b{color:var(--gov)}
+
+/* ── ROI ── */
+.roi-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px}
+@media(max-width:860px){.roi-grid{grid-template-columns:1fr}}
+.roi-in{padding:20px}
+.roi-in label{display:block;font-size:12px;font-weight:600;margin:12px 0 4px}
+.roi-in input[type=number]{width:100%;font-family:var(--mono);font-size:14px;border:1px solid var(--line);
+  border-radius:5px;padding:8px 10px}
+.roi-in input:focus{outline:2px solid var(--user)}
+.roi-in .hint{font-size:11px;color:var(--muted);margin-top:2px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cur{display:flex;gap:6px;margin-top:4px}
+.cur button{flex:1;font-family:var(--mono);font-size:12px;padding:7px;border:1px solid var(--line);
+  background:#fff;border-radius:5px;cursor:pointer}
+.cur button.on{background:var(--navy-2);color:#fff;border-color:var(--navy-2)}
+.mix{margin-top:14px}
+.mix .mrow{display:grid;grid-template-columns:1fr 78px 66px;gap:8px;align-items:center;font-size:12px;margin:6px 0}
+.mix .mrow .sw{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:6px}
+.roi-out{padding:22px;background:var(--navy);color:#f1ede2;border-color:var(--navy)}
+.roi-out h3{font-size:12px;font-family:var(--mono);font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:#8d8371}
+.big{font-family:var(--disp);font-weight:800;font-size:clamp(30px,4vw,42px);color:#C9A96A;margin:4px 0 2px}
+.big.amber{color:#d9b877;font-size:clamp(22px,3vw,30px)}
+.osub{font-size:12px;color:#a89d88}
+.ostats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.ostats b{font-family:var(--disp);font-size:19px;display:block}
+.ostats span{font-family:var(--mono);font-size:10.5px;color:#8d8371}
+.bars{margin-top:20px}
+.brow{display:grid;grid-template-columns:120px 1fr 84px;gap:10px;align-items:center;font-size:11px;margin:7px 0;color:#cfc4ad}
+.btrack{background:#26211a;border-radius:3px;height:14px;overflow:hidden}
+.bfill{height:100%;border-radius:3px;transition:width .5s ease}
+footer{background:#171410;color:#8d8371;border-top:3px solid #C9A96A;text-align:center;font-family:var(--mono);font-size:11px;padding:22px}
+.note{font-size:11.5px;color:var(--muted);margin-top:14px}
+/* ── deep-trace demo ── */
+.scenarios-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:24px}
+.scenarios-bar .sc{text-align:left;background:var(--card);border:1px solid var(--line);
+  border-radius:8px;padding:12px 14px;cursor:pointer;font-family:var(--sans)}
+.scenarios-bar .sc:hover{border-color:var(--user)}
+.scenarios-bar .sc.active{border-color:var(--navy-2);box-shadow:0 0 0 1.5px var(--navy-2)}
+.scenarios-bar .sc .t{font-weight:600;font-size:13px}
+.scenarios-bar .sc .d{font-size:11.5px;color:var(--muted);margin-top:2px}
+.scenarios-bar .sc .tag{font-family:var(--mono);font-size:10px;color:#fff;border-radius:3px;padding:1.5px 6px;float:right}
+.tg-orch{background:var(--orch)}.tg-integ{background:var(--integ)}.tg-gov{background:var(--gov)}.tg-user{background:var(--user)}
+
+.chan-bar{display:flex;align-items:center;gap:12px;margin:16px 0 10px;flex-wrap:wrap}
+.chan-label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.chan-bar #chanTabs{display:flex;gap:6px;flex-wrap:wrap}
+.chan{font-family:var(--sans);font-size:12px;font-weight:600;border:1px solid var(--line);
+  background:#fff;border-radius:20px;padding:6px 13px;cursor:pointer;color:var(--muted)}
+.chan.on{background:var(--navy-2);border-color:var(--navy-2);color:#fff}
+
+.lifecycle{display:flex;align-items:center;gap:14px;padding:12px 16px;margin-bottom:14px;flex-wrap:wrap}
+.lc-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted)}
+.lc-track{display:flex;align-items:center;flex-wrap:wrap;gap:0}
+.lc{font-family:var(--mono);font-size:10.5px;padding:5px 11px;border-radius:14px;
+  border:1.5px solid var(--line);color:var(--muted);background:#fff;transition:all .3s}
+.lc.done{background:var(--orch);border-color:var(--orch);color:#fff}
+.lc.now{background:var(--navy-2);border-color:var(--navy-2);color:#fff}
+.lc.skip{opacity:.32;text-decoration:line-through}
+.lc.na{background:var(--user);border-color:var(--user);color:#fff}
+.lc-pipe{width:16px;height:1.5px;background:var(--line)}
+.lc-pipe.done{background:var(--orch)}
+
+.deep-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:16px}
+@media(max-width:920px){.deep-grid{grid-template-columns:1fr}}
+.pane-head{display:flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:600;
+  font-size:13px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.ph-dot{width:9px;height:9px;border-radius:50%}
+.pane-sub{font-family:var(--mono);font-size:10.5px;font-weight:400;color:var(--muted);margin-left:auto}
+.pane .chat{max-height:520px;overflow-y:auto}
+
+/* channel-specific user message skins */
+.msg .chip{display:inline-block;font-family:var(--mono);font-size:9.5px;background:rgba(255,255,255,.22);
+  border-radius:3px;padding:1px 6px;margin-bottom:5px}
+.msg.email-card{align-self:flex-end;max-width:92%;background:#fff;border:1px solid var(--line);
+  color:var(--ink);border-radius:8px;padding:0;overflow:hidden}
+.msg.email-card .eh{background:#f1ede3;border-bottom:1px solid var(--line);padding:8px 12px;
+  font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.msg.email-card .eb{padding:10px 12px;font-size:13px;white-space:pre-line}
+.msg.voice-card{align-self:flex-end;background:var(--navy-2);color:#fff;border-radius:10px;border-bottom-right-radius:3px}
+.msg.voice-card .wave{font-size:15px;letter-spacing:2px}
+.msg.voice-card .tr{font-size:12.5px;margin-top:4px}
+.msg.voice-card .cf{font-family:var(--mono);font-size:9.5px;color:#d8c9a5;margin-top:4px}
+
+/* trace timeline */
+.trace{padding:14px 16px;max-height:520px;overflow-y:auto;position:relative}
+.tstep{border:1px solid var(--line);border-left-width:4px;border-radius:7px;background:#fff;
+  margin-bottom:9px;opacity:0;transform:translateY(6px);animation:pop .3s forwards;cursor:pointer}
+.tstep .th{display:flex;align-items:center;gap:9px;padding:9px 12px}
+.tstep .layer-tag{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:#fff;
+  border-radius:3px;padding:2px 6px;white-space:nowrap}
+.tstep .tt{font-size:12.5px;font-weight:600}
+.tstep .td{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:1px}
+.tstep .tm{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap}
+.tstep .chevron{font-family:var(--mono);color:var(--muted);font-size:11px;transition:transform .15s}
+.tstep.open .chevron{transform:rotate(90deg)}
+.tstep pre{display:none;margin:0 12px 11px;background:#1c1813;color:#e5dcc8;border-radius:6px;
+  padding:10px 12px;font-family:var(--mono);font-size:10.8px;line-height:1.5;overflow-x:auto;white-space:pre}
+.tstep.open pre{display:block}
+.tstep .k{color:#C9A96A}.tstep .v{color:#9dc4a4}.tstep .n{color:#d9b877}
+
+.run-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;
+  padding:16px 20px;margin-top:16px;background:linear-gradient(160deg,#171410,#221c13);border-color:#171410;color:#f1ede2}
+.rs-item b{font-family:var(--disp);font-size:22px;font-weight:800;color:#C9A96A;display:block}
+.rs-item span{font-family:var(--mono);font-size:10.5px;color:#8d8371}
+
+/* ── RAG builder ── */
+.dump-controls{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.mono{font-family:var(--mono)}
+.rag-stages{display:flex;align-items:center;flex-wrap:wrap;gap:0;padding:14px 16px;border-bottom:1px solid var(--line)}
+.rag-body{padding:16px}
+.rag-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px}
+.rag-counters .rc{border:1px solid var(--line);border-radius:6px;padding:8px 10px;background:#fcfbf7}
+.rag-counters .rc b{font-family:var(--disp);font-size:19px;display:block}
+.rag-counters .rc span{font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:.05em}
+.rag-progress{height:8px;background:#e8e2d4;border-radius:4px;overflow:hidden}
+.rag-fill{height:100%;width:0;background:linear-gradient(90deg,#8F7440,#C9A96A);transition:width .2s}
+.rag-log{font-size:11px;color:var(--muted);margin-top:10px;min-height:16px}
+
+.rag-results{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:16px}
+@media(max-width:920px){.rag-results{grid-template-columns:1fr}}
+.rr-pane .pane-head{font-size:12.5px}
+.rr-bars{padding:14px 18px}
+.rr-row{display:grid;grid-template-columns:170px 1fr 92px;gap:10px;align-items:center;font-size:11.5px;margin:7px 0}
+.rr-row .nm{font-weight:600}
+.rr-row .nm .new{font-family:var(--mono);font-size:9px;color:#fff;background:var(--core);border-radius:3px;padding:1px 5px;margin-left:5px;vertical-align:1px}
+.rr-track{background:#eef2f6;border-radius:3px;height:15px;overflow:hidden}
+.rr-fill{height:100%;border-radius:3px;width:0;transition:width .6s ease}
+.rr-fill.hatch{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.35) 0 5px,transparent 5px 10px)}
+.rr-count{font-family:var(--mono);font-size:10.5px;color:var(--muted);text-align:right}
+.rr-note{font-size:11.5px;color:var(--muted);padding:0 18px 16px}
+.rr-facts{padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rr-facts .rf b{font-family:var(--disp);font-size:20px;display:block;color:var(--navy-2)}
+.rr-facts .rf span{font-family:var(--mono);font-size:9.5px;color:var(--muted)}
+
+.disc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:860px){.disc-grid{grid-template-columns:1fr}}
+.disc{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--core);border-radius:9px;overflow:hidden}
+.disc .dh{padding:14px 16px 10px}
+.disc .dh h4{font-size:14.5px}
+.disc .meta{display:flex;gap:14px;margin-top:6px;font-family:var(--mono);font-size:10.5px;color:var(--muted);flex-wrap:wrap}
+.disc .meta b{color:var(--orch)}
+.disc .samples{padding:0 16px 10px;font-size:12px;color:var(--muted);font-style:italic}
+.disc details{border-top:1px solid var(--line)}
+.disc summary{list-style:none;cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:500;
+  padding:10px 16px;color:var(--navy-2)}
+.disc summary::-webkit-details-marker{display:none}
+.disc summary:hover{background:#f5f1e8}
+.disc .dc-body{padding:0 16px 14px;font-size:12.5px}
+.disc .dc-body pre{font-family:var(--mono);font-size:10.5px;background:#1c1813;color:#e5dcc8;
+  border-radius:6px;padding:10px 12px;overflow-x:auto;margin:8px 0}
+.disc .dc-body ol{margin:6px 0 6px 18px}
+.disc .dc-body li{margin:4px 0}
+.disc .code-need{font-family:var(--mono);font-size:10px;border-radius:3px;padding:2px 7px;color:#fff}
+.cn-none{background:var(--orch)} .cn-small{background:var(--integ)} .cn-med{background:var(--gov)}
+
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">PAITA<span>·demo</span></div>
+  <a href="#demo">Incident lifecycle</a>
+  <a href="#rag">RAG builder</a>
+  <a href="#arch">Architecture</a>
+  <a href="#impl">Implementation</a>
+  <a href="#roi">ROI calculator</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow" style="color:#C9A96A">Production Agentic AI · ITSM Transformation</div>
+    <h1>The service desk that <em>resolves</em>, not routes.</h1>
+    <p>PAITA classifies every request against a live use-case catalogue, grounds itself in your
+       knowledge base, plans within a closed action allow-list, and gates anything risky behind a
+       human approver — with a full audit trail. Explore it below.</p>
+    <div class="kpis">
+      <div class="kpi k-orch"><b>80%+</b><span>L1 password tickets auto-resolved</span></div>
+      <div class="kpi k-integ"><b>60%</b><span>faster VPN/network resolution</span></div>
+      <div class="kpi k-gov"><b>100%</b><span>high-risk actions human-approved</span></div>
+      <div class="kpi"><b>&lt;60s</b><span>reset confirmation, audit-logged</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ INCIDENT LIFECYCLE ══════════ -->
+<section id="demo">
+  <div class="eyebrow">01 · Incident lifecycle walkthrough</div>
+  <h2>From the moment a request arrives to closure — every state, every layer</h2>
+  <p class="lede">Pick a scenario and a channel. The left pane is what the <b>end user</b> experiences.
+     The right pane is the <b>agent execution trace</b>: each architecture component as it fires,
+     with its internal state — tap any step to inspect the payload.</p>
+
+  <div class="scenarios-bar" id="scList"></div>
+
+  <div class="chan-bar">
+    <span class="chan-label">Request arrives via</span>
+    <div id="chanTabs"></div>
+    <button class="btn btn-sm" id="replayBtn" onclick="replay()" style="margin-left:auto">▶ Replay</button>
+  </div>
+
+  <div class="lifecycle card" aria-label="Ticket lifecycle">
+    <span class="lc-label">TICKET LIFECYCLE</span>
+    <div class="lc-track" id="lcTrack"></div>
+  </div>
+
+  <div class="deep-grid">
+    <div class="card pane">
+      <div class="pane-head"><span class="ph-dot" style="background:var(--user)"></span>User experience <span class="pane-sub" id="chanName"></span></div>
+      <div class="chat" id="chat"><div class="msg bot" style="animation:none;opacity:1;transform:none">Select a scenario above to run it. ▸</div></div>
+    </div>
+    <div class="card pane">
+      <div class="pane-head"><span class="ph-dot" style="background:var(--orch)"></span>Agent execution trace <span class="pane-sub">tap a step to inspect its state</span></div>
+      <div class="trace" id="trace"></div>
+    </div>
+  </div>
+
+  <div class="run-summary card" id="runSummary" hidden>
+    <div class="rs-item"><b id="rsTime">—</b><span>end-to-end</span></div>
+    <div class="rs-item"><b id="rsTouch">—</b><span>human touches</span></div>
+    <div class="rs-item"><b id="rsAudit">—</b><span>audit events</span></div>
+    <div class="rs-item"><b id="rsBase">—</b><span>vs. pre-PAITA baseline</span></div>
+  </div>
+  <p class="note">Simulation only — payloads are scripted to mirror the deployed pipeline's real state objects. In production the identical steps run against Azure OpenAI, Azure AI Search, Entra ID, and your ITSM.</p>
+</section>
+
+<!-- ══════════ RAG BUILDER ══════════ -->
+<section id="rag" style="background:#efece4;max-width:none"><div style="max-width:1080px;margin:0 auto">
+  <div class="eyebrow">02 · Knowledge builder &amp; use case discovery</div>
+  <h2>Upload an incident dump — watch it become the agent's brain</h2>
+  <p class="lede">Historical tickets are PAITA's raw material: they become the RAG knowledge that grounds
+     answers, and they reveal <b>new use cases</b> hiding in your volume. Run the built-in 1,000-ticket
+     sample, or drop your own CSV.</p>
+
+  <div class="dump-controls">
+    <button class="btn" onclick="runDump()">▶ Process built-in sample (1,000 tickets)</button>
+    <button class="btn btn-ghost" onclick="downloadDump()">⬇ Download sample CSV</button>
+    <label class="btn btn-ghost" for="dumpFile" style="cursor:pointer">📄 Upload your own dump
+      <input type="file" id="dumpFile" accept=".csv,.json" hidden onchange="handleUpload(this)"></label>
+    <span class="hint" style="align-self:center">CSV with a <code>short_description</code> column (or first column) · processed entirely in your browser</span>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="rag-stages" id="ragStages"></div>
+    <div class="rag-body">
+      <div class="rag-counters" id="ragCounters"></div>
+      <div class="rag-progress"><div class="rag-fill" id="ragFill"></div></div>
+      <div class="rag-log mono" id="ragLog">Idle — choose a source above.</div>
+    </div>
+  </div>
+
+  <div class="rag-results" id="ragResults" hidden>
+    <div class="card rr-pane">
+      <div class="pane-head"><span class="ph-dot" style="background:var(--orch)"></span>Classification — 1,000 tickets across the live catalogue</div>
+      <div class="rr-bars" id="classBars"></div>
+      <div class="rr-note">Solid bars = the four <b>implemented</b> use cases (52% of volume already automatable).
+        Hatched bars = <b>discovered clusters</b> that match no existing use case — candidates below.</div>
+    </div>
+
+    <div class="card rr-pane">
+      <div class="pane-head"><span class="ph-dot" style="background:var(--core)"></span>What the pipeline produced</div>
+      <div class="rr-facts" id="ragFacts"></div>
+      <div class="rr-note">In the deployed product this is
+        <code>python -m paita.rag.ingestion ./dump --source tickets --groups it-staff</code> — chunk (1,600 chars,
+        200 overlap) → embed (text-embedding-3-large) → upsert to Azure AI Search with group ACLs. Resolution
+        worknotes become retrievable fix knowledge; the same dump also seeds
+        <code>evals/golden_set.jsonl</code> so intent accuracy is measured on <b>your</b> phrasing.</div>
+    </div>
+  </div>
+
+  <div id="discovery" hidden>
+    <h3 style="margin:30px 0 4px;font-size:19px">Discovered use cases — and exactly how to implement each</h3>
+    <p class="lede" style="margin-bottom:16px">Clusters with meaningful volume that match no implemented intent.
+       Each card shows the ready-to-paste Use Case Studio configuration and what (if anything) needs code.</p>
+    <div class="disc-grid" id="discGrid"></div>
+  </div>
+</div></section>
+
+<!-- ══════════ ARCHITECTURE ══════════ -->
+<section id="arch" style="background:#efece4;max-width:none"><div style="max-width:1080px;margin:0 auto">
+  <div class="eyebrow">03 · Architecture</div>
+  <h2>Tap each layer to open the implementation notes</h2>
+  <p class="lede">The stack mirrors the solution blueprint: six user channels, a five-agent
+     orchestration layer, an integration fabric, and two cross-cutting planes.</p>
+
+  <div class="arch" id="arch-layers">
+    <div class="layer L-user" onclick="tog(this)"><div class="lt"><h3>USER INTERACTION LAYER</h3><span class="chev">▸</span></div>
+      <div class="items">Microsoft Teams Bot · Web Portal · Mobile App · Voice (Azure Speech) · ITSM Portal Embed · Email</div>
+      <div class="detail"><b>How to implement:</b> all channels normalise to one <code>POST /v1/chat</code> contract.
+        Teams uses Azure Bot Service + the Adaptive Cards adapter (<code>channels/teams.py</code>); voice fronts the same
+        endpoint with Azure Speech STT/TTS; the ITSM embed is an iframe widget authenticated by the same Entra ID token.
+        One API surface = one place to secure, throttle, and observe.</div></div>
+
+    <div class="down">▼</div>
+    <div class="layer L-orch" onclick="tog(this)"><div class="lt"><h3>AGENT ORCHESTRATION LAYER (LangGraph)</h3><span class="chev">▸</span></div>
+      <div class="items">Five specialised agents in a stateful graph with conditional routing</div>
+      <div class="agents">
+        <div class="agent"><b>Intake &amp; Classification</b>Classifies against the live use-case catalogue; extracts entities, priority.</div>
+        <div class="agent"><b>Knowledge RAG</b>Hybrid retrieval (vector + BM25 + rerank) with group-level security trimming.</div>
+        <div class="agent"><b>Planning &amp; Reasoning</b>Builds a plan constrained to the use case's permitted actions.</div>
+        <div class="agent"><b>Action Execution</b>Closed allow-list, idempotency keys — retries never duplicate tickets.</div>
+        <div class="agent"><b>HITL &amp; Escalation</b>Queues high-risk actions for an <code>itsm.approver</code>; audit-logged decisions.</div>
+      </div>
+      <div class="detail"><b>How to implement:</b> the graph lives in <code>orchestrator/graph.py</code>.
+        Routing rule: answer-only → respond; any action with risk=high, any action in the HITL config list, or a
+        use-case-level "requires approval" toggle → the HITL gate. Session state sits in Redis (1h TTL), so the
+        API pods stay stateless and scale horizontally.</div></div>
+
+    <div class="down">▼</div>
+    <div class="layer L-integ" onclick="tog(this)"><div class="lt"><h3>INTEGRATION FABRIC &amp; API LAYER</h3><span class="chev">▸</span></div>
+      <div class="items">Azure API Management (gateway, security, throttling) · Bidirectional ITSM sync · Event-driven triggers · Secure webhooks</div>
+      <div class="detail"><b>How to implement:</b> front the Container App with APIM — subscription keys per channel,
+        rate limits, IP allow-list on <code>/v1/webhooks/itsm</code>. Outbound: ServiceNow OAuth2 Table API or Jira REST v3,
+        both with correlation-key dedupe. Inbound: ITSM business rules push state changes to the webhook, which fans out
+        proactive Teams/email notifications.</div></div>
+
+    <div class="down">▼</div>
+    <div class="layer L-core" onclick="tog(this)"><div class="lt"><h3>CORE AI PLATFORM</h3><span class="chev">▸</span></div>
+      <div class="items">Azure OpenAI (GPT-4o / o1) · Azure AI Search hybrid RAG · Vector store · Redis session state</div>
+      <div class="detail"><b>How to implement:</b> GPT-4o handles interactive turns; reserve o1 for deep diagnostic
+        reasoning where latency is acceptable. The search index carries an <code>allowed_groups</code> ACL field stamped at
+        ingestion — users can only retrieve documents their Entra groups permit. Embeddings: text-embedding-3-large,
+        1600-char chunks with 200 overlap. All services on private endpoints, accessed via Managed Identity — zero keys in code.</div></div>
+
+    <div class="down">▼</div>
+    <div class="layer L-gov" onclick="tog(this)"><div class="lt"><h3>CROSS-CUTTING GOVERNANCE</h3><span class="chev">▸</span></div>
+      <div class="items">Entra ID RBAC · Key Vault · Private endpoints · Audit logging · Content Safety · Eval framework · Power BI KPIs</div>
+      <div class="detail"><b>How to implement:</b> three app roles (<code>itsm.user</code>, <code>itsm.approver</code>,
+        <code>itsm.admin</code>). Content Safety screens input <em>and</em> output and fails closed in production.
+        Every classification, plan, approval and action emits a structured audit event — no message bodies stored.
+        CI release gate: unit tests + intent-accuracy eval ≥ 90% + red-team suite at 100% before any deploy.</div></div>
+  </div>
+</div></section>
+
+<!-- ══════════ IMPLEMENTATION GUIDES ══════════ -->
+<section id="impl">
+  <div class="eyebrow">04 · Implementation guides</div>
+  <h2>Six phases, each behind a click</h2>
+  <p class="lede">Expand only what you need. Every phase ends with an exit gate — don't move on until it's green.</p>
+
+  <div class="acc">
+    <details class="guide"><summary><span class="ph">PHASE 0</span><h3>Prerequisites &amp; landing zone</h3><span class="dur">~1 week</span></summary>
+      <div class="body">
+        <ul>
+          <li>Azure subscription with quota for Azure OpenAI (GPT-4o + embeddings) in the client's region.</li>
+          <li>Entra ID app registration <code>api://paita</code> with app roles <code>itsm.user</code>, <code>itsm.approver</code>, <code>itsm.admin</code>.</li>
+          <li>ITSM service account: ServiceNow OAuth client (incident table, least privilege) or Jira API token.</li>
+          <li>Network design signed off: private endpoints for AOAI, AI Search, Redis, Key Vault; APIM in front.</li>
+        </ul>
+        <pre>az deployment group create -g rg-paita -f infra/main.bicep \
+  -p containerImage=&lt;acr&gt;.azurecr.io/paita:1.1.0</pre>
+        <div class="gate"><b>Exit gate:</b> <code>/readyz</code> returns 200 from inside the VNet; Managed Identity can reach AOAI and Search.</div>
+      </div></details>
+
+    <details class="guide"><summary><span class="ph">PHASE 1</span><h3>Knowledge ingestion &amp; RAG quality</h3><span class="dur">~1–2 weeks</span></summary>
+      <div class="body">
+        <ul>
+          <li>Export SharePoint/Confluence KB articles, policies, and 6–12 months of resolved-ticket worknotes.</li>
+          <li>Stamp group ACLs at ingestion — a document's <code>allowed_groups</code> controls who can retrieve it.</li>
+          <li>Tag sources (<code>network</code>, <code>vpn</code>, <code>printers</code>…) so use cases can narrow retrieval.</li>
+        </ul>
+        <pre>python -m paita.rag.ingestion ./kb_export --source vpn --groups it-staff</pre>
+        <div class="gate"><b>Exit gate:</b> 20-question retrieval spot-check — the right article appears in the top 3 for ≥ 85% of questions.</div>
+      </div></details>
+
+    <details class="guide"><summary><span class="ph">PHASE 2</span><h3>Use case configuration (no code)</h3><span class="dur">~3 days</span></summary>
+      <div class="body">
+        <ul>
+          <li>Open the <b>Use Case Studio</b> at <code>/admin</code> — the four launch workflows ship as editable seeds.</li>
+          <li>Tune sample utterances with real phrasing from the client's ticket history.</li>
+          <li>Set governance per use case: HITL toggle, default priority, role restrictions, KB tags.</li>
+          <li>New workflows (printer support, mailbox quota, HR onboarding) are pure configuration — live on the next chat turn, no deploy.</li>
+        </ul>
+        <div class="gate"><b>Exit gate:</b> Studio test panel routes 10 real utterances per use case to the correct intent.</div>
+      </div></details>
+
+    <details class="guide"><summary><span class="ph">PHASE 3</span><h3>Channel rollout</h3><span class="dur">~1 week</span></summary>
+      <div class="body">
+        <ul>
+          <li>Teams first: register the bot in Azure Bot Service, point messaging endpoint at APIM, publish to the tenant app catalogue.</li>
+          <li>Then the ITSM portal embed (same token, iframe widget), then web/mobile/voice as demand appears.</li>
+          <li>Wire the ITSM webhook for bidirectional sync: ticket state changes trigger proactive notifications.</li>
+        </ul>
+        <div class="gate"><b>Exit gate:</b> end-to-end demo in Teams — ask, resolve, see the audit event and (where applicable) the ticket in ITSM.</div>
+      </div></details>
+
+    <details class="guide"><summary><span class="ph">PHASE 4</span><h3>Pilot &amp; evaluation</h3><span class="dur">~4 weeks</span></summary>
+      <div class="body">
+        <ul>
+          <li>Pilot with one workflow (password reset) and one user cohort (~200 users).</li>
+          <li>Extend <code>evals/golden_set.jsonl</code> with client utterances; run the eval gate weekly and on every KB refresh.</li>
+          <li>Review HITL queue SLAs; tune the auto-resolve confidence threshold from real traffic.</li>
+        </ul>
+        <pre>python -m evals.eval_framework --golden evals/golden_set.jsonl</pre>
+        <div class="gate"><b>Exit gate:</b> intent accuracy ≥ 90%, zero unapproved high-risk executions, CSAT ≥ baseline.</div>
+      </div></details>
+
+    <details class="guide"><summary><span class="ph">PHASE 5</span><h3>Scale &amp; operate</h3><span class="dur">ongoing</span></summary>
+      <div class="body">
+        <ul>
+          <li>Expand cohorts and use cases; each new workflow is a Studio entry, not a project.</li>
+          <li>Power BI dashboards over the audit stream: auto-resolution rate, deflection, MTTR delta, HITL SLA.</li>
+          <li>Runbook alerts: 5xx &gt; 2%, p95 &gt; 4s, readiness failures, HITL queue depth.</li>
+          <li>Rollback is safe and instant — Container Apps revisions, with all state external (Redis / ITSM).</li>
+        </ul>
+        <div class="gate"><b>Exit gate:</b> monthly ROI review against the calculator below — measured, not assumed.</div>
+      </div></details>
+  </div>
+</section>
+
+<!-- ══════════ ROI ══════════ -->
+<section id="roi" style="background:#efece4;max-width:none"><div style="max-width:1080px;margin:0 auto">
+  <div class="eyebrow">05 · ROI calculator</div>
+  <h2>Put your ticket volumes in — the model is transparent</h2>
+  <p class="lede">Savings = tickets deflected or auto-resolved × handle time × loaded agent cost, per category.
+     Deflection rates default to conservative pilot figures; adjust to your baseline.</p>
+
+  <div class="roi-grid">
+    <div class="card roi-in">
+      <div class="split">
+        <div>
+          <label for="r_tickets">Total tickets / month</label>
+          <input type="number" id="r_tickets" value="10000" min="0" oninput="roi()">
+        </div>
+        <div>
+          <label for="r_cost">Loaded L1 cost / hour</label>
+          <input type="number" id="r_cost" value="18" min="0" step="0.5" oninput="roi()">
+          <div class="cur">
+            <button id="cUSD" class="on" onclick="setCur('USD')">$ USD</button>
+            <button id="cINR" onclick="setCur('INR')">₹ INR</button>
+          </div>
+        </div>
+      </div>
+      <div class="split">
+        <div>
+          <label for="r_aht">Avg handle time (min)</label>
+          <input type="number" id="r_aht" value="22" min="1" oninput="roi()">
+        </div>
+        <div>
+          <label for="r_platform">Platform cost / month</label>
+          <input type="number" id="r_platform" value="9000" min="0" oninput="roi()">
+          <div class="hint">Azure consumption + licence + run cost</div>
+        </div>
+      </div>
+
+      <div class="mix">
+        <label>Ticket mix &amp; PAITA resolution rate</label>
+        <div class="mrow" style="color:var(--muted);font-family:var(--mono);font-size:10px">
+          <span></span><span>% of volume</span><span>% resolved</span></div>
+        <div class="mrow"><span><span class="sw" style="background:var(--user)"></span>Password / account reset</span>
+          <input type="number" id="m1v" value="28" min="0" max="100" oninput="roi()">
+          <input type="number" id="m1r" value="80" min="0" max="100" oninput="roi()"></div>
+        <div class="mrow"><span><span class="sw" style="background:var(--orch)"></span>Knowledge / how-to</span>
+          <input type="number" id="m2v" value="22" min="0" max="100" oninput="roi()">
+          <input type="number" id="m2r" value="65" min="0" max="100" oninput="roi()"></div>
+        <div class="mrow"><span><span class="sw" style="background:var(--integ)"></span>VPN / connectivity</span>
+          <input type="number" id="m3v" value="15" min="0" max="100" oninput="roi()">
+          <input type="number" id="m3r" value="45" min="0" max="100" oninput="roi()"></div>
+        <div class="mrow"><span><span class="sw" style="background:var(--core)"></span>Access requests</span>
+          <input type="number" id="m4v" value="12" min="0" max="100" oninput="roi()">
+          <input type="number" id="m4r" value="35" min="0" max="100" oninput="roi()"></div>
+        <div class="mrow"><span><span class="sw" style="background:#8aa0b5"></span>Everything else</span>
+          <input type="number" id="m5v" value="23" min="0" max="100" oninput="roi()">
+          <input type="number" id="m5r" value="10" min="0" max="100" oninput="roi()"></div>
+        <div class="hint" id="mixWarn"></div>
+      </div>
+    </div>
+
+    <div class="card roi-out">
+      <h3>Net monthly saving</h3>
+      <div class="big" id="oNet">—</div>
+      <div class="osub" id="oNetSub"></div>
+      <div class="big amber" id="oAnnual" style="margin-top:14px">—</div>
+      <div class="osub">projected annual net saving</div>
+
+      <div class="ostats">
+        <div><b id="oResolved">—</b><span>tickets auto-resolved / mo</span></div>
+        <div><b id="oHours">—</b><span>agent hours returned / mo</span></div>
+        <div><b id="oROI">—</b><span>ROI multiple on platform cost</span></div>
+        <div><b id="oPayback">—</b><span>payback period</span></div>
+      </div>
+
+      <div class="bars" id="bars"></div>
+      <div class="osub" style="margin-top:14px">Excludes soft benefits: faster MTTR on escalated tickets,
+        24×7 coverage, CSAT lift, and audit/compliance effort avoided.</div>
+    </div>
+  </div>
+</div></section>
+
+<footer>PAITA v1.1.0 · single-file interactive demo · scripted simulation, no data leaves this page</footer>
+
+<script>
+/* ═══ scenario engine (deep trace) ═══ */
+const LAYERS={
+  user:['USER LAYER','var(--user)'], gov:['GOVERNANCE','var(--gov)'],
+  orch:['ORCHESTRATION','var(--orch)'], core:['CORE AI','var(--core)'],
+  integ:['INTEGRATION','var(--integ)'], itsm:['CLIENT ITSM','var(--navy-2)']};
+
+const CHANNELS={
+  teams:{name:'Microsoft Teams', build:(msg)=>({
+    chat:{kind:'chip-user',chip:'Microsoft Teams',text:msg},
+    state:{channel:'msteams',activity:{type:'message',text:msg,
+      from:{id:'29:1a…',aadObjectId:'6f2e…-oid'},conversation:{id:'19:meeting_…'},locale:'en-IN'},
+      adapter:'channels/teams.py → POST /v1/chat'}})},
+  email:{name:'Email', build:(msg)=>({
+    chat:{kind:'email',from:'pawan.m@client.com',subject:'IT Support Request',text:msg},
+    state:{channel:'email',parsed:{from:'pawan.m@client.com',to:'it-assist@client.com',
+      subject:'IT Support Request',body:msg},checks:{spf:'pass',dkim:'pass'},
+      adapter:'Logic App → POST /v1/chat (session keyed by thread-id)'}})},
+  voice:{name:'Voice (Azure Speech)', build:(msg)=>({
+    chat:{kind:'voice',text:msg,conf:'STT confidence 0.93'},
+    state:{channel:'voice',stt:{engine:'Azure Speech',locale:'en-IN',confidence:0.93},
+      transcript:msg,caller:{ani:'+91-80-…',verified_via:'IVR + Entra device match'},
+      adapter:'Speech gateway → POST /v1/chat · reply returned as TTS'}})},
+  portal:{name:'ITSM Portal Embed', build:(msg)=>({
+    chat:{kind:'chip-user',chip:'ITSM Portal Widget',text:msg},
+    state:{channel:'itsm_embed',widget:{host:'servicenow-portal',sso:'entra-id-token (inherited)'},
+      message:msg,adapter:'iframe widget → POST /v1/chat'}})}
+};
+
+const IDENTITY_EVT=(roles)=>({l:'gov',c:'APIM Gateway + Entra ID',t:'Identity verified & request admitted',
+  d:'JWT validated · RBAC roles resolved · rate-limit ok',dt:'+0.3s',
+  s:{apim:{subscription:'channel-key',throttle:'ok'},
+     token:{upn:'pawan.m@client.com',oid:'6f2e…',tenant:'client.onmicrosoft.com',
+            mfa:'satisfied',roles:roles,groups:['it-staff','blr-office']}}});
+
+const SAFETY_EVT={l:'gov',c:'Azure AI Content Safety',t:'Inbound message screened',
+  d:'hate 0 · self-harm 0 · sexual 0 · violence 0 → allowed',dt:'+0.5s',
+  s:{api:'text:analyze?api-version=2024-09-01',
+     result:{Hate:0,SelfHarm:0,Sexual:0,Violence:0},policy:'block at severity ≥ 4 · fails closed in prod'}};
+
+const SCEN=[
+/* ── 1 · PASSWORD RESET ─────────────────────────────── */
+{t:'Password / Account Reset',d:'Zero-touch self-service to closure',tag:'auto',cls:'tg-orch',
+ msg:"I'm locked out of my laptop — forgot my password after the holidays.",
+ lifecycle:['Logged','Classified','Auto-Resolved','Closed'],
+ base:'15–45 min + L1 agent',
+ sum:{time:'52 sec',touch:'0',audit:'6'},
+ events:(ch)=>[
+  IDENTITY_EVT(['itsm.user']), SAFETY_EVT,
+  {l:'orch',c:'Intake & Classification',t:'Request classified',dt:'+1.4s',tk:1,
+   d:'intent: password_reset · P3 · confidence 0.96',
+   s:{intent:'password_reset',priority:'P3',confidence:0.96,
+      summary:'User locked out of laptop; requests AD password reset',
+      entities:{application:'Windows / AD'},business_impact:'',
+      note:'classified against the LIVE use-case catalogue (editable in /admin)'}},
+  {l:'core',c:'Knowledge RAG (Azure AI Search)',t:'Hybrid retrieval — grounded context',dt:'+2.1s',
+   d:'vector + BM25 + semantic rerank · ACL-trimmed',
+   s:{query:'password reset locked out laptop',
+      acl_filter:"allowed_groups any-of ['it-staff','blr-office','public']",
+      hits:[{title:'Self-Service Password Reset SOP',score:3.42},
+            {title:'Account Lockout Policy v2',score:2.87}]}},
+  {l:'orch',c:'Planning & Reasoning',t:'Plan built within permitted actions',dt:'+3.0s',
+   d:'resolution: automated_action · 1 action · risk low',
+   s:{resolution_path:'automated_action',confidence:0.94,
+      actions:[{action_type:'password_reset',target_system:'entra_id',risk:'low',
+        rationale:'identity already verified by the Entra session; self-service permitted by policy'}],
+      constraint:'planner may ONLY choose from this use case\'s permitted actions'}},
+  {l:'orch',c:'Conditional Router',t:'Route decision → EXECUTE',dt:'+3.1s',
+   d:'risk low · not in HITL list · use case approval toggle off',
+   s:{checks:{max_action_risk:'low',hitl_config_match:false,usecase_requires_approval:false},
+      route:'execute'}},
+  {l:'integ',c:'Action Executor → Entra ID',t:'Secure self-service reset issued',dt:'+4.6s',
+   d:'allow-list enforced · idempotency key set',
+   chat:['bot',"You're verified through your signed-in session, so I've issued a secure reset for your account.\n\n✅ Reset link sent to your registered device — it expires in 15 minutes."],
+   s:{allow_list_check:'password_reset ∈ ALLOWED_ACTIONS ✓',
+      guard:'target_upn == requester (self-service only) ✓',
+      idempotency_key:'9c41ab22e0f1…',
+      call:'MS Graph → authentication/resetPassword (scoped app permission)',
+      result:{status:'reset_link_issued',channel:'verified_session'}}},
+  {l:'itsm',c:'ServiceNow Connector',t:'Incident auto-logged & auto-resolved',dt:'+6.2s',tk:2,
+   d:'INC0048201 · state 6-Resolved · full compliance record',
+   s:{api:'POST /api/now/table/incident',dedupe:'correlation_id lookup → none found',
+      payload:{short_description:'Password reset — self-service via PAITA',
+        priority:'3',contact_type:'virtual_agent',correlation_id:'9c41ab22e0f1…',
+        state:'6-Resolved',close_code:'Solved (Permanently)',
+        close_notes:'Auto-resolved by PAITA. Reset link issued after Entra-verified session.'},
+      ticket_ref:'INC0048201'}},
+  {l:'user',c:'Closure confirmation',t:'User confirms — ticket closed',dt:'+38s',tk:3,
+   chat2:['user','Got it, reset worked. Thanks!'],
+   chat:['bot','Glad that fixed it — INC0048201 is closed with a full audit trail. Have a good one! 👋'],
+   d:'closure survey positive · INC0048201 → Closed',
+   s:{ticket:'INC0048201',transition:'Resolved → Closed',csat:'👍'}},
+  {l:'gov',c:'Audit & Observability',t:'Immutable trail emitted',dt:'+52s',
+   d:'6 events → Log Analytics → Power BI KPIs',
+   s:{events:['chat:turn','intake:classified','plan:built','execute:password_reset',
+              'itsm:auto_resolved','ticket:closed'],
+      stored:'intents, outcomes, references only — never message bodies',
+      kpi_feed:'auto-resolution rate · L1 deflection · MTTR'}}]},
+
+/* ── 2 · VPN / CONNECTIVITY ─────────────────────────── */
+{t:'VPN / Connectivity Issue',d:'Diagnose → rich ticket → synced closure',tag:'hybrid',cls:'tg-integ',
+ msg:'VPN keeps dropping every few minutes from the Pune office, error 809.',
+ lifecycle:['Logged','Classified','In Progress','Resolved','Closed'],
+ base:'1–4 hrs of back-and-forth',
+ sum:{time:'38 min',touch:'1 (network team)',audit:'8'},
+ events:(ch)=>[
+  IDENTITY_EVT(['itsm.user']), SAFETY_EVT,
+  {l:'orch',c:'Intake & Classification',t:'Request classified with entities',dt:'+1.5s',tk:1,
+   d:'intent: vpn_connectivity · P2 · entities extracted',
+   s:{intent:'vpn_connectivity',priority:'P2',confidence:0.93,
+      entities:{location:'Pune office',error_code:'809',pattern:'intermittent drops'},
+      business_impact:'single user, P2 site pattern watch'}},
+  {l:'core',c:'Knowledge RAG (Azure AI Search)',t:'Known-issue match found',dt:'+2.3s',
+   d:"filter: source ∈ ['network','vpn'] (set in the use case)",
+   chat:['bot','Error 809 usually means UDP 500/4500 is blocked between you and the gateway — and there IS a known issue at the Pune site this week. (Source: VPN Troubleshooting KB)\n\nTry these first:\n1. Switch to the backup profile "IN-West-2"\n2. On guest Wi-Fi, enable TCP fallback in the client'],
+   s:{kb_source_tags:['network','vpn'],
+      hits:[{title:'VPN Troubleshooting KB — Error 809',score:3.61},
+            {title:'Known Issues Bulletin — Pune GW-02',score:3.12}]}},
+  {l:'user',c:'User feedback',t:'Suggested fix did not resolve',dt:'+4 min',
+   chat2:['user',"Tried both — still dropping every few minutes."],
+   d:'conversation state retained in Redis (session TTL 1h)',
+   s:{session:'redis paita:hist:{session_id}',turns:2,next:'re-plan with diagnostics'}},
+  {l:'integ',c:'Action Executor → run_diagnostic',t:'Read-only network probe executed',dt:'+4.2 min',
+   d:'risk: low · no approval needed for read-only probes',
+   s:{probe:'vpn_health(user_tunnel, site=Pune)',
+      result:{udp_500:'BLOCKED at site firewall',udp_4500:'BLOCKED',packet_loss:'11%',
+              gateway:'GW-02 degraded'},attached_to:'ticket context'}},
+  {l:'itsm',c:'ServiceNow Connector',t:'Rich, pre-triaged incident created',dt:'+4.5 min',tk:2,
+   d:'INC0048291 → Network-Ops · no back-and-forth needed',
+   chat:['bot','The diagnostics confirm the site firewall is blocking the tunnel ports. I\'ve raised INC0048291 to Network-Ops with your logs, the probe results, and the known-issue reference — they won\'t need to ask you anything.\n\nI\'ll notify you the moment it moves.'],
+   s:{api:'POST /api/now/table/incident',idempotency:'correlation_id 4be7d0…',
+      payload:{short_description:'VPN error 809 — UDP 500/4500 blocked, Pune GW-02',
+        priority:'2',assignment_group:'Network-Ops',category:'network',
+        description:'Diagnostics attached: UDP blocked, 11% loss. Known issue KB-2291 linked.',
+        state:'2-In Progress'},ticket_ref:'INC0048291'}},
+  {l:'integ',c:'Bidirectional Sync (webhook)',t:'ITSM pushes resolution event back',dt:'+36 min',tk:3,
+   d:'POST /v1/webhooks/itsm · firewall rule corrected',
+   s:{inbound:{ticket_ref:'INC0048291',event:'state_change',new_state:'6-Resolved',
+        resolved_by:'network-ops',close_notes:'Firewall policy restored on Pune GW-02'},
+      security:'APIM subscription key + IP allow-list',
+      fanout:'proactive Teams notification to requester'}},
+  {l:'user',c:'Proactive notification & closure',t:'User confirms — closed',dt:'+38 min',tk:4,
+   chat:['bot','🔔 Update on INC0048291: Network-Ops restored the firewall policy on the Pune gateway. Can you confirm your VPN is stable now?'],
+   chat2:['user','Stable for the last 10 minutes. Perfect.'],
+   d:'INC0048291 Resolved → Closed on user confirmation',
+   s:{transition:'Resolved → Closed',mttr:'38 min vs 1–4 hr baseline (−60%+)'}},
+  {l:'gov',c:'Audit & Observability',t:'Trail + MTTR KPI emitted',dt:'+38 min',
+   d:'8 events · correct-first-routing recorded',
+   s:{events:['chat:turn ×3','intake:classified','execute:run_diagnostic',
+              'execute:create_ticket','webhook:received','ticket:closed'],
+      kpi:'MTTR delta, first-time-right routing'}}]},
+
+/* ── 3 · APPLICATION ACCESS REQUEST ─────────────────── */
+{t:'Application Access Request',d:'HITL-gated grant, fulfilment, closure',tag:'HITL',cls:'tg-gov',
+ msg:'I need access to the SAP FI module for month-end close.',
+ lifecycle:['Logged','Classified','Pending Approval','Approved','Fulfilled','Closed'],
+ base:'3–7 days via forms',
+ sum:{time:'3.4 hrs',touch:'1 (approver)',audit:'7'},
+ events:(ch)=>[
+  IDENTITY_EVT(['itsm.user','finance-analyst']), SAFETY_EVT,
+  {l:'orch',c:'Intake & Classification',t:'Access request recognised',dt:'+1.4s',tk:1,
+   d:'intent: access_request · confidence 0.94',
+   s:{intent:'access_request',priority:'P3',confidence:0.94,
+      entities:{application:'SAP FI',justification:'month-end close'}}},
+  {l:'core',c:'Knowledge RAG (Azure AI Search)',t:'Policy grounding retrieved',dt:'+2.2s',
+   d:'SAP Access Policy v4 → L1 manager approval required',
+   s:{hits:[{title:'SAP Access Policy v4',score:3.55},
+            {title:'SoD Matrix — Finance',score:2.94}],
+      key_clause:'FI module grants require line-manager approval + SoD check'}},
+  {l:'orch',c:'Planning & Reasoning',t:'Plan: access_grant — risk HIGH',dt:'+3.2s',
+   d:'policy pre-checks passed · approval unavoidable by design',
+   s:{resolution_path:'automated_action',confidence:0.91,
+      actions:[{action_type:'access_grant',target_system:'entra_id + SAP',risk:'high',
+        rationale:'per policy v4; SoD pre-check passed for finance-analyst role'}],
+      pre_checks:{sod_conflict:'none',requester_role:'finance-analyst ✓'}}},
+  {l:'orch',c:'Conditional Router',t:'Route decision → HITL GATE',dt:'+3.3s',
+   d:'risk high + use case "requires approval" toggle ON',
+   s:{checks:{max_action_risk:'HIGH',hitl_config_match:true,usecase_requires_approval:true},
+      route:'hitl_gate',guarantee:'no automated grant can bypass this gate'}},
+  {l:'gov',c:'HITL & Escalation',t:'Queued for human approval',dt:'+3.5s',tk:2,
+   chat:['hitl','Request: SAP FI module access · Requester role: finance-analyst · SoD check: passed\nQueued for an itsm.approver. Reference: a3f81c92 · SLA: same business day'],
+   chat2:['bot','Your request needs manager approval per policy — it\'s queued with everything the approver needs (ref a3f81c92). You\'ll be notified the moment it\'s actioned. Typical SLA: same day, down from 3–7 days.'],
+   d:'approval a3f81c92 · pending in Redis (24h TTL) · approver notified in Teams',
+   s:{approval_id:'a3f81c92',approver_role:'itsm.approver',
+      packet:{requester:'pawan.m@client.com',asset:'SAP FI',justification:'month-end close',
+              policy:'v4 ✓',sod:'clear'},api:'POST /v1/approvals awaits decision'}},
+  {l:'gov',c:'HITL & Escalation',t:'Approver decision: APPROVED',dt:'+3.1 hrs',tk:3,
+   d:'decided by r.iyer@client.com (manager) · comment logged',
+   s:{approval_id:'a3f81c92',approved:true,approver:'r.iyer@client.com',
+      comment:'Approved for month-end; review after close.',
+      audit:'hitl:decision → approved'}},
+  {l:'integ',c:'Action Executor → Fulfilment',t:'Grant dispatched · REQ created',dt:'+3.1 hrs',tk:4,
+   d:'executed ONLY after approval · idempotent',
+   s:{allow_list_check:'access_grant ∈ ALLOWED_ACTIONS ✓',
+      idempotency_key:'77aa93c1d2…',
+      dispatch:{workflow:'access_grant',target:'Entra ID group SAP-FI-Users + SAP CUA'},
+      itsm_record:{ticket_ref:'REQ0021744',state:'Closed Complete'}}},
+  {l:'user',c:'Proactive notification & closure',t:'Access live — request closed',dt:'+3.4 hrs',tk:5,
+   chat:['bot','🔔 Approved by your manager and provisioned: you now have SAP FI access (REQ0021744, closed complete). It can take one sign-out/sign-in to appear. Good luck with the close!'],
+   d:'REQ0021744 Closed Complete · end-to-end 3.4 hrs vs 3–7 days',
+   s:{transition:'Fulfilled → Closed',sla:'same business day'}},
+  {l:'gov',c:'Audit & Observability',t:'Approval chain preserved',dt:'+3.4 hrs',
+   d:'who asked, who approved, what ran — one immutable chain',
+   s:{events:['intake:classified','plan:built','hitl:queued','hitl:decision',
+              'execute:access_grant','itsm:req_closed','chat:turn'],
+      compliance:'zero unapproved high-risk executions — provable'}}]},
+
+/* ── 4 · KNOWLEDGE / HOW-TO ─────────────────────────── */
+{t:'Knowledge / How-to Query',d:'Cited answer, ACL-trimmed, no ticket',tag:'deflect',cls:'tg-user',
+ msg:'How do I set up MFA on my new phone?',
+ lifecycle:['Received','Classified','Answered','Deflected — no ticket'],
+ base:'portal searching or a Tier-1 ticket (1–2 days)',
+ sum:{time:'9 sec',touch:'0',audit:'3'},
+ events:(ch)=>[
+  IDENTITY_EVT(['itsm.user']), SAFETY_EVT,
+  {l:'orch',c:'Intake & Classification',t:'Recognised as knowledge query',dt:'+1.3s',tk:1,
+   d:'intent: knowledge_query · resolution path: answer_only',
+   s:{intent:'knowledge_query',priority:'P4',confidence:0.97,
+      resolution_hint:'answer_only — the use case defines no actions'}},
+  {l:'core',c:'Knowledge RAG (Azure AI Search)',t:'Retrieval with security trimming',dt:'+2.0s',
+   d:'2 hits returned · 1 document EXCLUDED by group ACL',
+   s:{hits:[{title:'MFA Enrolment Guide v3',score:3.71},
+            {title:'Identity Policy 2.1',score:3.02}],
+      excluded_by_acl:[{title:'PAM Admin MFA Procedure',reason:"requires group 'priv-admins'"}],
+      note:'users can only retrieve documents their Entra groups permit'}},
+  {l:'orch',c:'Planning & Reasoning',t:'Answer-only — no actions planned',dt:'+2.6s',
+   d:'knowledge alone resolves the request',
+   s:{resolution_path:'answer_only',actions:[],confidence:0.92}},
+  {l:'user',c:'Grounded, cited answer',t:'Delivered in 9 seconds',dt:'+4.1s',tk:2,
+   chat:['bot','Here\'s the current process:\n1. Install Microsoft Authenticator from your app store\n2. Visit aka.ms/mfasetup on a computer and sign in\n3. Choose "Add method → Authenticator app" and scan the QR code\n4. Approve the test notification\n\nYour old phone\'s method deactivates automatically after step 4. (Source: MFA Enrolment Guide v3)'],
+   chat2:['cite','MFA Enrolment Guide v3 · Identity Policy 2.1'],
+   d:'answer synthesised ONLY from retrieved context · citation discipline enforced',
+   s:{grounding_rule:'no invented URLs, numbers, or policy names',
+      citations:['MFA Enrolment Guide v3','Identity Policy 2.1']}},
+  {l:'gov',c:'Audit & Observability',t:'Tier-1 deflection recorded',dt:'+9s',tk:3,
+   d:'ticket: none · counts toward deflection KPI',
+   s:{events:['chat:turn','intake:classified','rag:answered'],
+      ticket:null,kpi:'deflection rate · self-service adoption'}}]}
+];
+
+/* ── rendering & playback ── */
+let curSc=0, curCh='teams', timer=null, queue=[];
+const $=id=>document.getElementById(id);
+
+const scList=$('scList');
+SCEN.forEach((s,i)=>{
+  const b=document.createElement('button'); b.className='sc';
+  b.innerHTML=`<span class="tag ${s.cls}">${s.tag}</span><div class="t">${s.t}</div><div class="d">${s.d}</div>`;
+  b.onclick=()=>{curSc=i;markActive();play();}; scList.appendChild(b);
+});
+const chanTabs=$('chanTabs');
+Object.entries(CHANNELS).forEach(([k,c])=>{
+  const b=document.createElement('button'); b.className='chan'+(k===curCh?' on':'');
+  b.textContent=c.name; b.dataset.k=k;
+  b.onclick=()=>{curCh=k;document.querySelectorAll('.chan').forEach(x=>x.classList.toggle('on',x.dataset.k===k));play();};
+  chanTabs.appendChild(b);
+});
+function markActive(){document.querySelectorAll('.scenarios-bar .sc').forEach((x,i)=>x.classList.toggle('active',i===curSc));}
+function replay(){play();}
+
+function drawLifecycle(states,progress){
+  const el=$('lcTrack'); el.innerHTML='';
+  states.forEach((name,i)=>{
+    if(i){const p=document.createElement('span');p.className='lc-pipe'+(i<=progress?' done':'');el.appendChild(p);}
+    const c=document.createElement('span');
+    c.className='lc'+(i<progress?' done':i===progress?' now':'');
+    c.textContent=name; el.appendChild(c);
+  });
+}
+
+function chatMsg(entry){
+  const chat=$('chat'); const m=document.createElement('div');
+  const [kind,text]=entry;
+  if(kind==='cite'){m.className='msg';m.style.cssText='align-self:flex-start;padding:0;background:none;border:none';
+    m.innerHTML=text.split('·').map(c=>`<span class="cite">📄 ${c.trim()}</span>`).join('');}
+  else if(kind==='hitl'){m.className='msg hitl';
+    m.innerHTML=`<div style="padding:12px 14px"><div class="hd">HITL & ESCALATION</div><div style="font-size:12.5px;margin-top:6px;white-space:pre-line">${text}</div></div>`;}
+  else{m.className='msg '+kind;m.textContent=text;
+    m.innerHTML=m.innerHTML.replace(/(INC\d+|REQ\d+)/g,'<span class="tick">$1</span>');}
+  chat.appendChild(m); chat.scrollTop=chat.scrollHeight;
+}
+function chatIntake(ch,msg){
+  const chat=$('chat'); const b=CHANNELS[ch].build(msg).chat; const m=document.createElement('div');
+  if(b.kind==='email'){m.className='msg email-card';
+    m.innerHTML=`<div class="eh">From: ${b.from} · Subject: ${b.subject}</div><div class="eb">${b.text}</div>`;}
+  else if(b.kind==='voice'){m.className='msg voice-card';
+    m.innerHTML=`<div class="wave">🎙 ▂▄▆▄▂▅▃</div><div class="tr">"${b.text}"</div><div class="cf">${b.conf} · replies via TTS 🔊</div>`;}
+  else{m.className='msg user';m.innerHTML=`<span class="chip">${b.chip}</span><br>${b.text}`;}
+  chat.appendChild(m);
+}
+function traceCard(ev){
+  const [lname,lcolor]=LAYERS[ev.l]; const el=$('trace');
+  const d=document.createElement('div'); d.className='tstep'; d.style.borderLeftColor=lcolor;
+  d.innerHTML=`<div class="th"><span class="layer-tag" style="background:${lcolor}">${lname}</span>
+    <div><div class="tt">${ev.c} — ${ev.t}</div><div class="td">${ev.d||''}</div></div>
+    <span class="tm">${ev.dt||''}</span><span class="chevron">▸</span></div>
+    <pre>${JSON.stringify(ev.s,null,2)}</pre>`;
+  d.onclick=()=>d.classList.toggle('open');
+  el.appendChild(d); el.scrollTop=el.scrollHeight;
+}
+
+function play(){
+  clearTimeout(timer); markActive();
+  const sc=SCEN[curSc], build=CHANNELS[curCh].build(sc.msg);
+  $('chanName').textContent='· '+CHANNELS[curCh].name;
+  $('chat').innerHTML=''; $('trace').innerHTML=''; $('runSummary').hidden=true;
+  drawLifecycle(sc.lifecycle,-1);
+  chatIntake(curCh,sc.msg);
+  const intakeEv={l:'user',c:CHANNELS[curCh].name,t:'Request received & normalised',
+    d:'all channels converge on one contract: POST /v1/chat',dt:'+0.0s',tk:0,s:build.state};
+  queue=[intakeEv,...sc.events(curCh)];
+  let i=0, progress=-1;
+  const tick=()=>{
+    if(i>=queue.length){
+      drawLifecycle(sc.lifecycle,sc.lifecycle.length);
+      $('rsTime').textContent=sc.sum.time; $('rsTouch').textContent=sc.sum.touch;
+      $('rsAudit').textContent=sc.sum.audit; $('rsBase').textContent=sc.base;
+      $('runSummary').hidden=false; return;
+    }
+    const ev=queue[i];
+    if(ev.chat2 && ev.chat2[0]==='user'){chatMsg(ev.chat2);} // user speaks before the step lands
+    traceCard(ev);
+    if(ev.chat) chatMsg(ev.chat);
+    if(ev.chat2 && ev.chat2[0]!=='user') chatMsg(ev.chat2);
+    if(typeof ev.tk==='number'){progress=ev.tk; drawLifecycle(sc.lifecycle,progress);}
+    i++; timer=setTimeout(tick, 1150);
+  };
+  tick();
+}
+drawLifecycle(SCEN[0].lifecycle,-1);
+
+/* ═══ RAG builder & use case discovery ═══ */
+// Deterministic PRNG so the "1,000-ticket dump" is identical on every run.
+let _seed=42; const rnd=()=>{_seed=(_seed*1103515245+12345)%2147483648;return _seed/2147483648;};
+const pick=a=>a[Math.floor(rnd()*a.length)];
+
+const SITES=['Pune','Bengaluru','Hyderabad','Chennai','Mumbai','Gurugram'];
+const APPS=['SAP FI','SAP MM','Salesforce','Workday','Tableau','Jira','Confluence','Power BI'];
+const SW=['Visio','AutoCAD','Notepad++','Python 3.12','Postman','VS Code','7-Zip','Adobe Acrobat'];
+const HW=['laptop','second monitor','docking station','wireless headset','ergonomic keyboard','webcam'];
+
+const CAT_DEFS=[ // [id, label, implemented?, weight, color, templates]
+ ['password_reset','Password / account reset',1,.22,'var(--user)',[
+   ()=>`Forgot AD password, locked out of laptop`,
+   ()=>`Account locked after ${2+Math.floor(rnd()*4)} failed attempts, need password reset`,
+   ()=>`Cannot login to ${pick(APPS)}, password expired`,
+   ()=>`Reset my domain password please, urgent`]],
+ ['vpn_connectivity','VPN / connectivity',1,.13,'var(--integ)',[
+   ()=>`VPN error 8${pick(['09','12','29'])} connecting from ${pick(SITES)} office`,
+   ()=>`VPN keeps disconnecting every few minutes, ${pick(SITES)}`,
+   ()=>`Cannot reach intranet over VPN, tunnel drops`,
+   ()=>`Slow network and VPN latency from home, packet loss`]],
+ ['access_request','Application access request',1,.11,'var(--core)',[
+   ()=>`Need access to ${pick(APPS)} for my new role`,
+   ()=>`Request admin rights on project workspace in ${pick(APPS)}`,
+   ()=>`Grant read access to finance shared drive`,
+   ()=>`Add me to ${pick(APPS)} with reporting role, access request`]],
+ ['knowledge_query','Knowledge / how-to',1,.12,'var(--orch)',[
+   ()=>`How do I set up MFA on my new phone`,
+   ()=>`How to configure email signature per brand policy`,
+   ()=>`What is the policy on installing personal software`,
+   ()=>`How to book a meeting room via Outlook, how-to`]],
+ // ── clusters that match NO implemented use case ──
+ ['printer_support','Printer & print queue',0,.08,'#7a8ea3',[
+   ()=>`Printer on floor ${1+Math.floor(rnd()*9)} jammed, ${pick(SITES)}`,
+   ()=>`Print job stuck in queue, spooler not responding`,
+   ()=>`Printer offline, cannot print label from ${pick(SITES)} office`,
+   ()=>`Toner low / print quality streaks on shared printer`]],
+ ['software_install','Software install & licensing',0,.09,'#7a8ea3',[
+   ()=>`Please install ${pick(SW)} on my machine`,
+   ()=>`Need license for ${pick(SW)}, software install request`,
+   ()=>`Software Center shows install failed error 0x8007064${Math.floor(rnd()*9)}`,
+   ()=>`Update ${pick(SW)} to latest version, blocked by policy`]],
+ ['mailbox_email','Mailbox, quota & distribution lists',0,.07,'#7a8ea3',[
+   ()=>`Mailbox full, cannot send or receive email, quota exceeded`,
+   ()=>`Add me to DL-${pick(['Finance','ProjectX','AllHands-'+pick(SITES)])} distribution list`,
+   ()=>`Emails to external client bouncing, NDR 550`,
+   ()=>`Need shared mailbox access for team inbox`]],
+ ['hardware_request','Hardware & peripherals',0,.06,'#7a8ea3',[
+   ()=>`Request a ${pick(HW)} for my desk`,
+   ()=>`Laptop battery draining fast, hardware check needed`,
+   ()=>`${pick(HW)} not detected after dock firmware update`,
+   ()=>`New joiner needs a ${pick(HW)}, hardware request`]],
+ ['wifi_office','Office Wi-Fi & LAN',0,.05,'#7a8ea3',[
+   ()=>`Wi-Fi keeps dropping on floor ${1+Math.floor(rnd()*9)}, ${pick(SITES)}`,
+   ()=>`Cannot connect to corporate SSID, certificate error`,
+   ()=>`LAN port dead at desk ${100+Math.floor(rnd()*400)}, ${pick(SITES)}`,
+   ()=>`Guest Wi-Fi voucher not working for visitor`]],
+ ['onboarding','Joiner / mover / leaver',0,.04,'#7a8ea3',[
+   ()=>`New joiner starting Monday, needs accounts and laptop, onboarding`,
+   ()=>`Employee moving teams, transfer access and mailbox, mover`,
+   ()=>`Leaver last day Friday, disable accounts and archive mailbox`,
+   ()=>`Onboarding checklist incomplete for contractor`]],
+ ['other','Everything else',0,.03,'#c2ccd6',[
+   ()=>`Meeting room AV not working, screen blank`,
+   ()=>`Badge access denied at ${pick(SITES)} gate`,
+   ()=>`Phone extension not ringing, softphone issue`]]
+];
+
+// keyword classifier (mirrors what intake does, simplified for the browser)
+const RULES=[
+ ['password_reset',/password|locked out|account lock|login.*expired|reset my/i],
+ ['vpn_connectivity',/vpn|tunnel|intranet.*(reach|over)|packet loss/i],
+ ['access_request',/access|admin rights|grant|add me to (?!dl)/i],
+ ['knowledge_query',/how (do|to)|what is the policy|how-to/i],
+ ['printer_support',/print(er)?|spooler|toner/i],
+ ['software_install',/install|license|software center|update .* version/i],
+ ['mailbox_email',/mailbox|quota|distribution list|dl-|ndr|bounc/i],
+ ['hardware_request',/laptop battery|monitor|docking|headset|keyboard|webcam|hardware/i],
+ ['wifi_office',/wi-?fi|ssid|lan port|guest wi/i],
+ ['onboarding',/joiner|onboard|leaver|mover|last day/i]];
+function classifyText(t){for(const[id,re]of RULES)if(re.test(t))return id;return 'other';}
+
+function genDump(n=1000){
+  _seed=42; const rows=[];
+  const cum=[]; let acc=0; CAT_DEFS.forEach(c=>{acc+=c[3];cum.push([acc,c]);});
+  for(let i=0;i<n;i++){
+    const r=rnd(); const cat=cum.find(([a])=>r<=a)[1];
+    const desc=pick(cat[5])();
+    rows.push({number:'INC00'+(41000+i),opened:`2026-0${1+Math.floor(rnd()*6)}-${String(1+Math.floor(rnd()*28)).padStart(2,'0')}`,
+      priority:'P'+(2+Math.floor(rnd()*3)),short_description:desc,
+      resolution_notes:`Resolved by L${1+Math.floor(rnd()*2)}: standard fix applied for ${cat[1].toLowerCase()}.`});
+  }
+  return rows;
+}
+function downloadDump(){
+  const rows=genDump();
+  const esc=s=>`"${String(s).replace(/"/g,'""')}"`;
+  const csv=['number,opened,priority,short_description,resolution_notes',
+    ...rows.map(r=>[r.number,r.opened,r.priority,esc(r.short_description),esc(r.resolution_notes)].join(','))].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='paita-sample-incident-dump-1000.csv'; a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* discovery knowledge: implementation recipes for the new clusters */
+const RECIPES={
+ printer_support:{auto:'~45%',code:['cn-small','1 small action: restart_print_spooler'],
+  cfg:{id:'printer_support',name:'Printer Support',resolution_path:'automated_action',
+   sample_utterances:['printer on floor 3 is jammed','print job stuck in queue'],
+   kb_source_tags:['printers','facilities'],
+   actions:[{action_type:'run_diagnostic',target_system:'print_mgmt',risk:'low'},
+            {action_type:'create_ticket',risk:'low'}],requires_approval:false,default_priority:'P3'},
+  steps:['Ingest printer KB + these 80 resolved tickets with tag <code>printers</code>',
+   'Create the use case in the Studio (config left) — live immediately, zero deploy',
+   'Optional code (1 function + allow-list entry): <code>restart_print_spooler</code> via print-management API — turns "stuck queue" into a 30-second self-heal',
+   'Add 10 printer utterances to the eval golden set; re-run the gate']},
+ software_install:{auto:'~55%',code:['cn-med','1 connector: Intune/SCCM deploy_app'],
+  cfg:{id:'software_install',name:'Software Install & Licensing',resolution_path:'automated_action',
+   sample_utterances:['please install Visio on my machine','Software Center install failed 0x80070643'],
+   kb_source_tags:['software','licensing'],
+   actions:[{action_type:'deploy_app',target_system:'intune',risk:'medium'},
+            {action_type:'create_ticket',risk:'low'}],requires_approval:true,default_priority:'P3'},
+  steps:['Ingest the software catalogue + licensing policy with tag <code>software</code>',
+   'New executor action <code>deploy_app</code> → Intune/SCCM API with a license-availability pre-check (medium risk)',
+   'Keep <b>HITL ON</b> for licensed titles — free/approved titles can later be exempted per policy',
+   'The 0x8007… error tickets become RAG fix knowledge — many resolve as how-to answers']},
+ mailbox_email:{auto:'~50%',code:['cn-small','2 read/write Graph calls'],
+  cfg:{id:'mailbox_email',name:'Mailbox, Quota & DLs',resolution_path:'automated_action',
+   sample_utterances:['mailbox full cannot send','add me to DL-Finance'],
+   kb_source_tags:['email','exchange'],
+   actions:[{action_type:'run_diagnostic',target_system:'graph_mail',risk:'low'},
+            {action_type:'access_grant',target_system:'entra_id',risk:'high'}],
+   requires_approval:true,default_priority:'P3'},
+  steps:['<code>run_diagnostic</code> reuses the existing action — point it at Graph mailbox-usage (read-only quota report + archive suggestion)',
+   'DL membership rides the existing <code>access_grant</code> + HITL path — DL owner becomes the approver',
+   'Ingest Exchange runbooks with tag <code>email</code>; NDR 550 tickets become cited answers']},
+ hardware_request:{auto:'~30%',code:['cn-none','configuration only'],
+  cfg:{id:'hardware_request',name:'Hardware & Peripherals',resolution_path:'ticket',
+   sample_utterances:['request a second monitor','laptop battery draining fast'],
+   kb_source_tags:['hardware','catalogue'],
+   actions:[{action_type:'create_ticket',risk:'low',
+     default_parameters:{category:'hardware',extra:{catalog_item:'auto-mapped'}}}],
+   requires_approval:false,default_priority:'P4'},
+  steps:['Pure Studio config — <code>create_ticket</code> pre-fills the right catalogue item and cost centre',
+   'Value is triage: correct resolver group + complete info first time (kills the 3-day bounce)',
+   'Later: add an approval-by-cost-threshold rule via the HITL toggle on a cloned "high-value hardware" use case']},
+ wifi_office:{auto:'~40%',code:['cn-none','configuration only'],
+  cfg:{id:'wifi_office',name:'Office Wi-Fi & LAN',resolution_path:'automated_action',
+   sample_utterances:['wifi keeps dropping on floor 4','cannot connect to corporate SSID'],
+   kb_source_tags:['network','wifi'],
+   actions:[{action_type:'run_diagnostic',target_system:'network_diag',risk:'low'},
+            {action_type:'create_ticket',risk:'low'}],requires_approval:false,default_priority:'P2'},
+  steps:['Reuses the VPN pattern: KB-first, then diagnostic, then a rich ticket',
+   'Site-storm detection: repeated same-site reports within an hour attach to ONE parent incident (dedupe by correlation key already in the connector)',
+   'Ingest wireless runbooks with tag <code>wifi</code>']},
+ onboarding:{auto:'~35%',code:['cn-med','change_request workflow wiring'],
+  cfg:{id:'onboarding',name:'Joiner / Mover / Leaver',resolution_path:'automated_action',
+   sample_utterances:['new joiner starting Monday needs accounts','leaver last day Friday disable accounts'],
+   kb_source_tags:['hr-it','onboarding'],
+   actions:[{action_type:'change_request',target_system:'itsm',risk:'high'}],
+   requires_approval:true,default_priority:'P2',allowed_roles:['itsm.user','hr-ops']},
+  steps:['Always HITL — the existing <code>change_request</code> action dispatches an orchestrated checklist (accounts, licences, hardware, DLs)',
+   'Restrict visibility to HR-ops via <code>allowed_roles</code> — a Studio field, not code',
+   'Biggest MTTR win in the dump: today these bounce across 4 teams; PAITA fans out parallel child tasks',
+   'Leaver flow is the compliance star: provable same-day de-provisioning in the audit chain']}
+};
+
+/* ── pipeline animation ── */
+const RSTAGES=['Ingest','PII scrub','Dedupe','Classify','Cluster','Chunk + Embed','Index (ACL)'];
+function drawRagStages(active){
+  const el=document.getElementById('ragStages'); el.innerHTML='';
+  RSTAGES.forEach((s,i)=>{
+    if(i){const p=document.createElement('span');p.className='pipe'+(i<=active?' lit':'');el.appendChild(p);}
+    const st=document.createElement('span');
+    st.className='stage'+(i<=active?' lit':''); if(i<=active)st.style.background='var(--navy-2)';
+    st.style.borderColor=i<=active?'transparent':'var(--line)';
+    if(i<=active)st.style.color='#fff';
+    st.textContent=s; el.appendChild(st);
+  });
+}
+function counters(vals){
+  const defs=[['tickets','TICKETS PARSED'],['pii','PII FIELDS SCRUBBED'],['dupes','DUPLICATES MERGED'],
+              ['chunks','CHUNKS CREATED'],['vecs','VECTORS EMBEDDED'],['docs','DOCS INDEXED']];
+  document.getElementById('ragCounters').innerHTML=defs.map(([k,l])=>
+    `<div class="rc"><b>${(vals[k]||0).toLocaleString()}</b><span>${l}</span></div>`).join('');
+}
+
+let ragTimer=null;
+function runDump(rows){
+  clearTimeout(ragTimer);
+  rows=rows||genDump();
+  const log=document.getElementById('ragLog'), fill=document.getElementById('ragFill');
+  document.getElementById('ragResults').hidden=true; document.getElementById('discovery').hidden=true;
+  const total=rows.length; let i=0;
+  const stats={tickets:0,pii:0,dupes:0,chunks:0,vecs:0,docs:0};
+  const counts={}; CAT_DEFS.forEach(c=>counts[c[0]]=0);
+  drawRagStages(0); counters(stats);
+  const batch=()=>{
+    const end=Math.min(i+50,total);
+    for(;i<end;i++){
+      const t=rows[i]; stats.tickets++;
+      stats.pii+=rnd()<.18?1:0;                       // emails/phones found in worknotes
+      if(rnd()<.06){stats.dupes++;continue;}          // near-duplicate merged
+      const cat=classifyText(t.short_description); counts[cat]=(counts[cat]||0)+1;
+      const ch=1+(t.short_description.length+ (t.resolution_notes||'').length>180?1:0);
+      stats.chunks+=ch; stats.vecs+=ch; stats.docs++;
+    }
+    const pct=i/total;
+    drawRagStages(Math.min(6,Math.floor(pct*7)));
+    counters(stats); fill.style.width=(pct*100)+'%';
+    log.textContent=`batch ${Math.ceil(i/50)}/${Math.ceil(total/50)} · ${i}/${total} tickets · `+
+      `ACL stamped: allowed_groups=['it-staff'] · index: paita-knowledge`;
+    if(i<total){ragTimer=setTimeout(batch,110);}
+    else finish(counts,stats,total);
+  };
+  batch();
+}
+function finish(counts,stats,total){
+  document.getElementById('ragLog').textContent=
+    `done · ${stats.docs} documents live in Azure AI Search · resolution worknotes now retrievable as fix knowledge`;
+  // classification bars
+  const bars=document.getElementById('classBars'); bars.innerHTML='';
+  const max=Math.max(...Object.values(counts),1);
+  const ordered=[...CAT_DEFS].sort((a,b)=>(counts[b[0]]||0)-(counts[a[0]]||0));
+  let implVol=0;
+  ordered.forEach(([id,label,impl,,color])=>{
+    const n=counts[id]||0; if(!n)return;
+    if(impl)implVol+=n;
+    bars.innerHTML+=`<div class="rr-row"><span class="nm">${label}${impl?'':'<span class="new">NEW</span>'}</span>
+      <div class="rr-track"><div class="rr-fill ${impl?'':'hatch'}" style="background:${impl?color:'var(--core)'}"></div></div>
+      <span class="rr-count">${n} · ${(n/total*100).toFixed(1)}%</span></div>`;
+  });
+  requestAnimationFrame(()=>{ // animate widths
+    const rows=[...bars.querySelectorAll('.rr-row')];
+    ordered.filter(c=>counts[c[0]]).forEach(([id],idx)=>{
+      rows[idx].querySelector('.rr-fill').style.width=((counts[id]/max)*100)+'%';});
+  });
+  // facts
+  document.getElementById('ragFacts').innerHTML=[
+    [stats.docs.toLocaleString(),'documents indexed'],
+    [stats.chunks.toLocaleString(),'chunks · 1600c/200 overlap'],
+    [stats.pii,'PII values redacted pre-index'],
+    [Math.round(implVol/total*100)+'%','volume already automatable'],
+    [Object.entries(counts).filter(([id,n])=>n/total>=.02&&!CAT_DEFS.find(c=>c[0]===id)[2]&&id!=='other').length,'new use cases discovered'],
+    ['52','golden-set evals generated']
+  ].map(([b,s])=>`<div class="rf"><b>${b}</b><span>${s}</span></div>`).join('');
+  document.getElementById('ragResults').hidden=false;
+
+  // discovery cards
+  const grid=document.getElementById('discGrid'); grid.innerHTML='';
+  CAT_DEFS.filter(([id,,impl])=>!impl&&id!=='other'&&(counts[id]||0)/total>=.02)
+   .sort((a,b)=>counts[b[0]]-counts[a[0]])
+   .forEach(([id,label,,,,templates])=>{
+    _seed=7; const samples=[templates[0](),templates[1]()];
+    const r=RECIPES[id], n=counts[id];
+    grid.innerHTML+=`<div class="disc">
+      <div class="dh"><h4>${label}</h4>
+        <div class="meta"><span><b>${n}</b> tickets (${(n/total*100).toFixed(1)}%)</span>
+          <span>est. automation <b>${r.auto}</b></span>
+          <span class="code-need ${r.code[0]}">${r.code[1]}</span></div></div>
+      <div class="samples">"${samples[0]}" · "${samples[1]}"</div>
+      <details><summary>▸ Ready-to-paste Use Case Studio config</summary>
+        <div class="dc-body"><pre>${JSON.stringify(r.cfg,null,2)}</pre>
+        <div class="hint">Paste into <code>/admin</code> → live on the next chat turn.</div></div></details>
+      <details><summary>▸ Implementation recipe</summary>
+        <div class="dc-body"><ol>${r.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div></details>
+    </div>`;
+  });
+  document.getElementById('discovery').hidden=false;
+}
+
+/* ── user-supplied dump ── */
+function handleUpload(input){
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    let rows=[];
+    try{
+      if(file.name.endsWith('.json')){
+        const j=JSON.parse(e.target.result);
+        rows=(Array.isArray(j)?j:j.records||[]).map(r=>({short_description:r.short_description||r.summary||r.description||String(r),resolution_notes:r.resolution_notes||''}));
+      }else{
+        const lines=e.target.result.split(/\r?\n/).filter(Boolean);
+        const head=lines[0].toLowerCase().split(',');
+        let col=head.indexOf('short_description'); if(col<0)col=head.indexOf('summary'); if(col<0)col=0;
+        rows=lines.slice(1).map(l=>{ // naive CSV split honouring simple quotes
+          const cells=l.match(/("([^"]|"")*"|[^,]*)(,|$)/g).map(c=>c.replace(/,$/,'').replace(/^"|"$/g,'').replace(/""/g,'"'));
+          return {short_description:cells[col]||'',resolution_notes:''};
+        }).filter(r=>r.short_description);
+      }
+    }catch(err){document.getElementById('ragLog').textContent='Could not parse the file — CSV with a short_description column, or a JSON array.';return;}
+    if(!rows.length){document.getElementById('ragLog').textContent='No rows found in the file.';return;}
+    runDump(rows);
+  };
+  reader.readAsText(file); input.value='';
+}
+drawRagStages(-1); counters({});
+
+/* ═══ architecture accordions ═══ */
+function tog(el){el.classList.toggle('open');}
+
+/* ═══ ROI ═══ */
+let CUR='USD';
+const fmt=v=>{
+  const sym=CUR==='USD'?'$':'₹';
+  if(v>=1e7&&CUR==='INR')return sym+(v/1e7).toFixed(2)+' Cr';
+  if(v>=1e5&&CUR==='INR')return sym+(v/1e5).toFixed(1)+' L';
+  if(v>=1e6)return sym+(v/1e6).toFixed(2)+'M';
+  if(v>=1e3)return sym+(v/1e3).toFixed(0)+'K';
+  return sym+Math.round(v).toLocaleString();
+};
+function setCur(c){
+  CUR=c;
+  document.getElementById('cUSD').classList.toggle('on',c==='USD');
+  document.getElementById('cINR').classList.toggle('on',c==='INR');
+  // sensible defaults per currency for loaded cost & platform cost
+  if(c==='INR'){r_cost.value=600; r_platform.value=750000;}
+  else{r_cost.value=18; r_platform.value=9000;}
+  roi();
+}
+const CATS=[["Password reset","m1","var(--user)"],["Knowledge / how-to","m2","var(--orch)"],
+            ["VPN / connectivity","m3","var(--integ)"],["Access requests","m4","var(--core)"],
+            ["Everything else","m5","#8aa0b5"]];
+function roi(){
+  const T=+r_tickets.value||0, C=+r_cost.value||0, A=+r_aht.value||0, P=+r_platform.value||0;
+  let mixSum=0, resolved=0, rows=[];
+  for(const[,id]of CATS){
+    const v=+document.getElementById(id+'v').value||0, r=+document.getElementById(id+'r').value||0;
+    mixSum+=v; const n=T*v/100, done=n*r/100; resolved+=done; rows.push([n,done]);
+  }
+  document.getElementById('mixWarn').textContent =
+    Math.round(mixSum)!==100 ? `⚠ mix adds to ${Math.round(mixSum)}% — results scale accordingly` : '';
+  const hours=resolved*A/60, gross=hours*C, net=gross-P;
+  document.getElementById('oNet').textContent=fmt(net);
+  document.getElementById('oNetSub').textContent=
+    `${fmt(gross)} gross saving − ${fmt(P)} platform cost`;
+  document.getElementById('oAnnual').textContent=fmt(net*12);
+  document.getElementById('oResolved').textContent=Math.round(resolved).toLocaleString();
+  document.getElementById('oHours').textContent=Math.round(hours).toLocaleString();
+  document.getElementById('oROI').textContent=P>0?(gross/P).toFixed(1)+'×':'—';
+  document.getElementById('oPayback').textContent=
+    net>0?(P>0?`${Math.max(1,Math.ceil(P/(net/30)))} days`:'immediate'):'not yet';
+  // bars: before vs after volume reaching humans, per category
+  const bars=document.getElementById('bars'); bars.innerHTML='';
+  const maxN=Math.max(...rows.map(r=>r[0]),1);
+  CATS.forEach(([name,,color],i)=>{
+    const [n,done]=rows[i], left=n-done;
+    bars.innerHTML+=`<div class="brow"><span>${name}</span>
+      <div class="btrack"><div class="bfill" style="width:${(left/maxN)*100}%;background:${color}"></div></div>
+      <span>${Math.round(left).toLocaleString()} to humans</span></div>`;
+  });
+}
+roi();
+</script>
+</body>
+</html>
